@@ -37,6 +37,7 @@ export default function RootLayout() {
         initialRouteName="index">
         <Stack.Screen name="index" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="products" />
         <Stack.Screen name="signup" />
         <Stack.Screen name="+not-found" />
       </Stack>

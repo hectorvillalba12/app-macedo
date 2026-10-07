@@ -11,21 +11,32 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { signup } from '@/services/auth';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  function handleSignUp() {
-    if (!email.trim() || password.length < 6) {
-      setError('Introduce un correo válido y una contraseña de al menos 6 caracteres.');
+  async function handleSignUp() {
+    if (!email.trim() || password.length < 8 || password.length > 72) {
+      setError('Usá un correo válido y una contraseña de 8 a 72 caracteres.');
       return;
     }
-    setError(null);
-    router.replace('/home');
+
+    try {
+      setLoading(true);
+      setError(null);
+      await signup(email.trim(), password);
+      router.replace('/');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo registrar.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -94,7 +105,7 @@ export default function SignupScreen() {
                 <Lock size={19} color={focusedField === 'password' ? '#145F52' : '#8A9A96'} />
                 <TextInput
                   className="flex-1 ml-3 text-[#16332E] text-[15px]"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="De 8 a 72 caracteres"
                   placeholderTextColor="#9ca3af"
                   value={password}
                   onChangeText={setPassword}
@@ -125,10 +136,11 @@ export default function SignupScreen() {
             {/* Button */}
             <TouchableOpacity
               onPress={handleSignUp}
+              disabled={loading}
               activeOpacity={0.8}
-              className="bg-[#145F52] rounded-xl h-14 items-center justify-center">
+              className={`bg-[#145F52] rounded-xl h-14 items-center justify-center ${loading ? 'opacity-70' : ''}`}>
               <Text className="text-white text-base font-semibold">
-                Registrarme
+                {loading ? 'Registrando...' : 'Registrarme'}
               </Text>
             </TouchableOpacity>
 

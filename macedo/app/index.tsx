@@ -11,21 +11,33 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { login } from '@/services/auth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  function handleSignIn() {
+  async function handleSignIn() {
     if (!email.trim() || !password) {
       setError('Por favor completa todos los campos.');
       return;
     }
-    setError(null);
-    router.replace('/home');
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      await login(email.trim(), password);
+      router.replace('/home');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo iniciar sesión.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -127,10 +139,11 @@ export default function LoginScreen() {
             {/* Button */}
             <TouchableOpacity
               onPress={handleSignIn}
+              disabled={loading}
               activeOpacity={0.8}
-              className="bg-[#145F52] rounded-xl h-14 items-center justify-center">
+              className={`bg-[#145F52] rounded-xl h-14 items-center justify-center ${loading ? 'opacity-70' : ''}`}>
               <Text className="text-white text-base font-semibold">
-                Iniciar sesión
+                {loading ? 'Ingresando...' : 'Iniciar sesión'}
               </Text>
             </TouchableOpacity>
 
